@@ -43,28 +43,23 @@ bool isPrime(long long n) {
     return true;
 }
 
-long long computeN(long long p, long long q) {
-    return p * q;
+long long modExp(long long base, long long exp, long long mod) {
+    long long res = 1;
+    base %= mod;
+    while (exp > 0) {
+        if (exp & 1) res = (res * base) % mod;
+        base = (base * base) % mod;
+        exp >>= 1;
+    }
+    return res;
 }
 
-
-long long phi(long long p, long long q) {
-    return (p - 1) * (q - 1);
-}
-
-
-bool validE(long long e, long long phi_n) {
-    return e > 1 && e < phi_n && gcd(e, phi_n) == 1;
-}
-
-
-long long modInverse(long long e, long long phi_n) {
+long long modInverse(long long e, long long phi) {
     long long t = 0, newt = 1;
-    long long r = phi_n, newr = e;
+    long long r = phi, newr = e;
 
     while (newr != 0) {
         long long q = r / newr;
-
         long long temp = newt;
         newt = t - q * newt;
         t = temp;
@@ -74,63 +69,44 @@ long long modInverse(long long e, long long phi_n) {
         r = temp;
     }
 
-    if (r > 1) return -1;
-    if (t < 0) t += phi_n;
-
-    return t; 
+    if (t < 0) t += phi;
+    return t;
 }
-
-long long modExp(long long base, long long exp, long long mod) {
-    long long result = 1;
-    base %= mod;
-
-    while (exp > 0) {
-        if (exp & 1)
-            result = (result * base) % mod;
-
-        base = (base * base) % mod;
-        exp >>= 1;
-    }
-    return result;
-}
-
-long long encrypt(long long m, long long e, long long n) {
-    return modExp(m, e, n);
-}
-
-long long decrypt(long long c, long long d, long long n) {
-    return modExp(c, d, n);
-}
-
 
 int main() {
-    long long p = 3, q = 11;
+    string plaintext = "I like cake";
+    vector<long long> ciphertext;
+    string decrypted = "";
 
-    if (!isPrime(p) || !isPrime(q) || p == q) return 0;
+    int p = 11;
+    int q = 13;
 
-    long long n = computeN(p, q);
-    long long phi_n = phi(p, q);
+    int n = p * q;
+    int phi = (p - 1) * (q - 1);
 
-    long long e = 3;
-    if (!validE(e, phi_n)) return 0;
+    int e = 7;
+    if (gcd(e, phi) != 1) return 0;
 
-    long long d = modInverse(e, phi_n);
+    long long d = modInverse(e, phi);
 
-    long long m = 4;
-    long long c = encrypt(m, e, n);
-    long long original = decrypt(c, d, n);
+    for (char ch : plaintext) {
+        long long m = (int)ch;
+        long long c = modExp(m, e, n);
+        ciphertext.push_back(c);
+    }
 
-    cout << "Encrypted: " << c << endl;
-    cout << "Decrypted: " << original << endl;
+    for (long long c : ciphertext) {
+        long long m = modExp(c, d, n);
+        decrypted += char(m);
+    }
+
+    cout << "Original: " << plaintext << endl;
+
+    cout << "Encrypted: ";
+    for (auto c : ciphertext) cout << c << " ";
+    cout << endl;
+
+    cout << "Decrypted: " << decrypted << endl;
+
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
